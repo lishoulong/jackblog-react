@@ -1,37 +1,19 @@
-var path = require('path')
+import configManager from './src/infra/config-manager';
+import middlewareManager from './src/infra/middleware-manager';
+import routeManager from './src/nfra/route-manager';
+import assetsManager from './src/infra/assets-manager';
+
 var express = require('express')
-var serverRender = require('./dist/server.js')
-var favicon = require('serve-favicon')
 
 var app = express()
 var isDev = process.env.NODE_ENV === 'development'
 var defaultPort = isDev? 3000 : 8300
 var port = process.env.PORT || defaultPort
 
-app.use(express.static(path.join(__dirname, 'dist')))
-
-if (isDev) {
-  var config = require('./webpack/webpack.config.dev.client.js')
-  var compiler = require('webpack')(config)
-  app.use(require('webpack-dev-middleware')(compiler, {
-    noInfo: false,
-    hot:true,
-    inline: true,
-    publicPath: config.output.publicPath,
-    stats: {
-      colors: true
-    }
-  }))
-  app.use(require('webpack-hot-middleware')(compiler))
-}else{
-  app.use(favicon(path.join(__dirname, 'dist', 'favicon.ico')))
-  app.set('views', path.join(__dirname, 'dist'))
-  app.set('view engine', 'ejs')
-}
-
-app.get('*', function (req, res, next) {
-  serverRender.default(req, res);
-})
+configManager.handle(app);
+middlewareManager.handle(app);
+assetsManager.handle(app);
+routeManager.handle(app);
 
 app.listen(port, function(err) {
   if (err) {

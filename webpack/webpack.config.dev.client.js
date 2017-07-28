@@ -34,16 +34,16 @@ module.exports = {
   ],
   module: {
     preLoaders: [
-      { test: /\.js$|\.jsx$/, loader: 'eslint-loader', exclude: /node_modules/ }
+      {
+        test: /\.(js)|(jsx)$/,
+        exclude: /node_modules|lib/,
+        loaders: ['eslint-loader'],
+        include: path.join(__dirname, '../src'),
+      }
     ],
     loaders: [{
       test: /\.js$|\.jsx$/,
-      loader: 'babel',
-      query: {
-        'presets': ['es2015', 'react', 'stage-0','react-hmre'],
-        'plugins':['transform-decorators-legacy']
-      },
-      include: path.join(__dirname, '../src'),
+      loader: 'babel-loader',
       exclude: /node_modules/
     }, 
     { test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap' ) },
@@ -58,9 +58,6 @@ module.exports = {
       test: /\.(woff|woff2|ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
       loader: 'url?limit=10000&name=fonts/[hash:8].[name].[ext]'
     }]
-  },
-  eslint: {
-    configFile: path.join(__dirname, '../.eslintrc.json')
   },
   resolve: {
     extensions: ['','.js','.jsx','.scss','.css']

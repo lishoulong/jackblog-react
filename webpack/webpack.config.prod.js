@@ -60,13 +60,8 @@ module.exports = [
       ],
       loaders: [{
         test: /\.js$/,
-        loader: 'babel',
-        query: {
-          'presets': ['es2015', 'react', 'stage-0'],
-          'plugins':['transform-decorators-legacy']
-        },
-        exclude: /node_modules/,
-        include: path.join(__dirname,'../src')
+        loader: 'babel-loader',
+        exclude: /node_modules/
       }, 
       { test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader?sourceMap' ) },
       { test: /\.json$/, loader: 'json-loader' },
@@ -96,7 +91,7 @@ module.exports = [
     context: path.join(__dirname, '../'),
     target: 'node',
     entry: {
-      server: ['babel-polyfill','./src/server']
+      server: ['./src/server']
     },
     output: {
       path: './dist',
@@ -127,12 +122,7 @@ module.exports = [
       loaders: [
         {
           test: /\.js$|\.jsx$/,
-          loader: 'babel',
-          query: {
-            'presets': ['es2015', 'react', 'stage-0'],
-            'plugins':['transform-decorators-legacy','syntax-async-functions']
-          },
-          include: path.join(__dirname, '..', 'src'),
+          loader: 'babel-loader',
           exclude: /node_modules/,
         },
         { test: /\.json$/, loader: 'json-loader' },

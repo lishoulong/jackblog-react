@@ -6,7 +6,7 @@ module.exports = {
   context: path.join(__dirname, '../'),
   target: 'node',
   entry: {
-    server: ['babel-polyfill','./src/server.js']
+    server: ['./src/server.js']
   },
   output: {
     path: './dist',
@@ -26,18 +26,21 @@ module.exports = {
   ],
   module: {
     preLoaders: [
-      { test: /\.js$|\.jsx$/, loader: 'eslint-loader', exclude: /node_modules/ }
+      {
+        test: /\.(js)|(jsx)$/,
+        exclude: /node_modules|lib/,
+        loaders: ['eslint-loader'],
+        include: path.join(__dirname, '../src'),
+      }
     ],
     loaders: [
       {
-        test: /\.js$|\.jsx$/,
-        loader: 'babel',
+        test: /\.(js)|(jsx)$/,
+        loader: 'babel-loader',
+        exclude: /node_modules/,
         query: {
-          'presets': ['es2015', 'react', 'stage-0'],
-          'plugins':['transform-decorators-legacy','syntax-async-functions']
-        },
-        include: path.join(__dirname, '..', 'src'),
-        exclude: /node_modules/
+            presets: ['es2015', 'react']
+        }
       },
       { test: /\.json$/, loader: 'json-loader' },
       {
@@ -48,9 +51,6 @@ module.exports = {
         ]
       }
     ]
-  },
-  eslint: {
-    configFile: path.join(__dirname, '../.eslintrc.json')
   },
   resolve: {
     extensions: ['', '.js', '.jsx', '.css'],
