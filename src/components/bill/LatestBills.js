@@ -1,9 +1,9 @@
 import React from 'react';
-
 import List from '../common/List';
 import CompactBill from './CompactBill';
-
+import { connect } from 'react-redux';
 import * as Actions from '../../actions';
+import { bindActionCreators } from 'redux'
 
 const mapStateToProps = state =>{
   return {

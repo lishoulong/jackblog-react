@@ -1,5 +1,5 @@
 import React from 'react';
-import {IndexRoute, Route} from 'react-router';
+import {Route, IndexRoute} from 'react-router';
 
 import App from './components/app';
 import NoMatch from './components/common/NoMatch';

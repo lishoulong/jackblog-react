@@ -1,62 +1,24 @@
-import React from 'react'
-import { renderToString } from 'react-dom/server'
-import { RouterContext, match, createMemoryHistory } from 'react-router'
-import configureStore from './store/configureStore'
-import { Provider } from 'react-redux'
-import routes from './routes'
-import ContextWrapper from './components/common/ContextWrapper';
+import configManager from './infra/config-manager';
+import middlewareManager from './infra/middleware-manager';
+import routeManager from './infra/route-manager';
+import assetsManager from './infra/assets-manager';
 
-export default function render(req, res) {
-  match({routes, location: req.originalUrl}, (err, redirectLocation, renderProps) => {
-      const {promises, components} = mapComponentsToPromises(
-          renderProps.components, renderProps.params);
+var express = require('express')
 
-      Promise.all(promises).then((values) => {
-          const data = prepareData(values, components);
-          const html = renderHtml(renderProps, data);
+var app = express()
+var isDev = process.env.NODE_ENV === 'development'
+var defaultPort = isDev? 3000 : 8300
+var port = process.env.PORT || defaultPort
 
-          res.render('index', {
-              content: html,
-              context: JSON.stringify(data)
-          });
-      }).catch((err) => {
-          res.status(500).send(err);
-      });
-  });
-}
+configManager.handle(app);
+middlewareManager.handle(app);
+assetsManager.handle(app);
+routeManager.handle(app);
 
-function mapComponentsToPromises(components, params) {
-    const filteredComponents = components.filter((Component) => {
-        return (typeof Component.loadAction === 'function');
-    });
-
-    const promises = filteredComponents.map(function(Component) {
-        return Component.loadAction(params, 'http://localhost:3000');                  
-    });
-
-    return {promises, components: filteredComponents};
-}
-
-function prepareData(values, components) {
-    const map = {};
-
-    values.forEach((value, index) => {
-        map[components[0].NAME] = value.data;
-    });
-
-    return map;
-}
-
-function renderHtml(renderProps, data) {
-    const history = createMemoryHistory();
-    const store = configureStore({}, history);  
-    let html = renderToString(
-      <Provider store={store}>
-        <ContextWrapper data={data}>
-            <RoutingContext {...renderProps}/>
-        </ContextWrapper>
-      </Provider>
-    );
-
-    return html;
-}
+app.listen(port, function(err) {
+  if (err) {
+    console.error(err)
+  } else {
+    console.info("==> 🌎  Listening on port %s. Open up http://localhost:%s/ in your browser.", port, port)
+  }
+})

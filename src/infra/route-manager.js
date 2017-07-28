@@ -1,17 +1,14 @@
 import FS from 'fs';
-
 import express from 'express';
 import axios from 'axios';
-
-import nconf from 'nconf';
-
-import React from 'react'
-import {match, RoutingContext} from 'react-router';
-
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import {RouterContext, match, createMemoryHistory } from 'react-router';
+import { Provider } from 'react-redux';
 import baseManager from './base-manager';
 import routes from '../routes';
-
-const serverRender = require('../../dist/server.js');
+import ContextWrapper from '../components/common/ContextWrapper';
+import configureStore from '../store/configureStore';
 
 const routeManager = Object.assign({}, baseManager, {
     configureDevelopmentEnv(app) {
@@ -23,8 +20,36 @@ const routeManager = Object.assign({}, baseManager, {
 
     createPageRouter() {
         const router = express.Router();
-        router.get('*', function (req, res, next) {
-          serverRender.default(req, res);
+        let that = this;
+        router.get('*', function (req, res) {
+          match({routes, location: req.originalUrl}, (err, redirectLocation, renderProps) => {
+            console.log('routes',routes);
+            console.log('requ',req.originalUrl);
+            if (err) {
+              res.status(500).send(err.message)
+            }else if(redirectLocation) {
+              res.redirect(302, redirectLocation.pathname + redirectLocation.search)  
+            }else if(renderProps) {
+                console.log('renderProps',renderProps);
+                console.log('redirectLocation',redirectLocation);
+                const {promises, components} = that.mapComponentsToPromises(
+                    renderProps.components, renderProps.params);
+
+                Promise.all(promises).then((values) => {
+                    const data = that.prepareData(values, components);
+                    const html = that.renderHtml(renderProps, data);
+
+                    res.render('index', {
+                        content: html,
+                        context: JSON.stringify(data)
+                    });
+                }).catch((err) => {
+                    res.status(500).send(err);
+                });
+            }else {
+                res.status(404).send('Not found')
+            }
+          });
         });
         return router;
     },
@@ -34,6 +59,39 @@ const routeManager = Object.assign({}, baseManager, {
         this.createLastestBillsRoute(router);
         this.createDetailedBillRoute(router);        
         return router;
+    },
+    mapComponentsToPromises(components, params) {
+        const filteredComponents = components.filter((Component) => {
+            return (typeof Component.loadAction === 'function');
+        });
+
+        const promises = filteredComponents.map(function(Component) {
+            return Component.loadAction(params, 'http://localhost:3000');                  
+        });
+
+        return {promises, components: filteredComponents};
+    },
+    prepareData(values, components) {
+        const map = {};
+
+        values.forEach((value, index) => {
+            map[components[0].NAME] = value.data;
+        });
+
+        return map;
+    },
+    renderHtml(renderProps, data) {
+        const history = createMemoryHistory();
+        const store = configureStore({}, history);  
+        let html = renderToString(
+        <Provider store={store}>
+            <ContextWrapper data={data}>
+                <RouterContext {...renderProps}/>
+            </ContextWrapper>
+        </Provider>
+        );
+
+        return html;
     },
     createLastestBillsRoute(router) {
         router.get('/latest-bills', (req, res) => {

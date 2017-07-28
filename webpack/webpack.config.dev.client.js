@@ -59,6 +59,9 @@ module.exports = {
       loader: 'url?limit=10000&name=fonts/[hash:8].[name].[ext]'
     }]
   },
+  eslint: {
+    configFile: path.join(__dirname, '../eslintrc.json')
+  },
   resolve: {
     extensions: ['','.js','.jsx','.scss','.css']
   }

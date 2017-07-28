@@ -1,19 +1,6 @@
 import * as types from './types';
 import axios from 'axios';
 
-/*获取文章列表*/
-export const getArticleList = (isAdd = true) =>{
-  return (dispatch,getState) => {
-    const options = getState().options.toJS()
-    return dispatch({
-      type: types.ARTICLE_LIST,
-      itemsPerPage: options.itemsPerPage,
-      promise: api.getArticleList(options),
-      isAdd: isAdd
-    })
-  }
-}
-
 export const loadDetaileBillData = (params, domain = '') => {
   const url = `${domain}/api/bill/${params.id}`;
   return axios.get(url);
@@ -40,6 +27,7 @@ export const loadLatestBillsData = (params, domain = '') => {
 }
 
 export const getLatestBillsData = (params) => {
+  return (dispatch, getState) => {
     loadLatestBillsData(params).then((response) => {
         return dispatch({
           type: types.BILL_LIST_SUCCESS,
@@ -50,4 +38,5 @@ export const getLatestBillsData = (params) => {
           type: types.BILL_LIST_FAILURE
         })
     });
+  }
 }
